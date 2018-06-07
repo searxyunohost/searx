@@ -1,7 +1,8 @@
 #!/bin/bash
 
 #=================================================
-# GENERIC STARTING
+#
+ GENERIC STARTING
 #=================================================
 # IMPORT GENERIC HELPERS
 #=================================================
@@ -55,7 +56,9 @@ ynh_app_setting_set $app is_public $is_public
 # INSTALL DEPENDENCIES
 #=================================================
 
-ynh_install_app_dependencies git build-essential libxslt-dev python-dev python-virtualenv virtualenv python-babel zlib1g-dev libffi-dev libssl-dev python-lxml uwsgi uwsgi-plugin-python
+ynh_install_app_dependencies git build-essential libxslt-dev python-dev 
+python-virtualenv virtualenv python-babel zlib1g-dev libffi-dev 
+libssl-dev python-lxml uwsgi uwsgi-plugin-python
 
 #=================================================
 # NGINX CONFIGURATION
@@ -64,11 +67,13 @@ ynh_install_app_dependencies git build-essential libxslt-dev python-dev python-v
 ynh_add_nginx_config
 if [ "$path_url" = "/" ]
 then
-	ynh_replace_string "__PATH_NO_ROOT__" "" /etc/nginx/conf.d/$domain.d/$app.conf
+	ynh_replace_string "__PATH_NO_ROOT__" "" 
+/etc/nginx/conf.d/$domain.d/$app.conf
 	sed --in-place '/#noroot*/d' /etc/nginx/conf.d/$domain.d/$app.conf
 else
 	ynh_replace_string "#noroot" "" /etc/nginx/conf.d/$domain.d/$app.conf
-	ynh_replace_string "__PATH_NO_ROOT__" "$path_url" /etc/nginx/conf.d/$domain.d/$app.conf
+	ynh_replace_string "__PATH_NO_ROOT__" "$path_url" 
+/etc/nginx/conf.d/$domain.d/$app.conf
 fi
 ynh_store_file_checksum "/etc/nginx/conf.d/$domain.d/$app.conf"
 
@@ -84,7 +89,8 @@ ynh_system_user_create $app
 #=================================================
 
 ynh_app_setting_set $app final_path $final_path
-# Download, check integrity, uncompress and patch the source from app.src
+# Download, check integrity, uncompress and patch the source from 
+app.src
 ynh_setup_source "$final_path"
 
 #=================================================
@@ -94,24 +100,30 @@ ynh_setup_source "$final_path"
 #=================================================
 
 virtualenv --system-site-packages "$final_path"
-bash -c "source $final_path/bin/activate && pip install -U setuptools && pip install --requirement $final_path/requirements-ynh.txt"
+bash -c "source $final_path/bin/activate && pip install -U 
+setuptools && pip install --requirement 
+$final_path/requirements-ynh.txt"
 
 #=================================================
 # CONFIGURE SEARX
 #=================================================
 
 # Change instance name
-ynh_replace_string "instance_name : \"searx\"" "instance_name : \"YunoSearx\"" "$final_path/searx/settings.yml"
+ynh_replace_string "instance_name : \"searx\"" "instance_name : 
+\"YunoSearx\"" "$final_path/searx/settings.yml"
 
 # Generate a secret key
-ynh_replace_string "secret_key : \"ultrasecretkey\"" "secret_key : \"$(ynh_string_random)\"" "$final_path/searx/settings.yml"
+ynh_replace_string "secret_key : \"ultrasecretkey\"" "secret_key : 
+\"$(ynh_string_random)\"" "$final_path/searx/settings.yml"
 
 # Modify the base_url parameter, if it's installed in a subpath
 if [ "$path_url" != "/" ]
 then
-  ynh_replace_string "base_url : False" "base_url : https://${domain}${path_url}/" "$final_path/searx/settings.yml"
+  ynh_replace_string "base_url : False" "base_url : 
+http://${domain}${path_url}/" "$final_path/searx/settings.yml"
 else
-  ynh_replace_string "base_url : False" "base_url : False" "$final_path/searx/settings.yml"
+  ynh_replace_string "base_url : False" "base_url : False" 
+"$final_path/searx/settings.yml"
 fi
 ynh_store_file_checksum "$final_path/searx/settings.yml"
 
@@ -127,8 +139,10 @@ chown $app: --recursive "$final_path"
 
 cp ../conf/searx.ini /etc/uwsgi/apps-available/$app.ini
 ynh_replace_string "__APP__" "$app" /etc/uwsgi/apps-available/$app.ini
-ynh_replace_string "__FINALPATH__" "$final_path" /etc/uwsgi/apps-available/$app.ini
-ln -s /etc/uwsgi/apps-available/$app.ini /etc/uwsgi/apps-enabled/$app.ini
+ynh_replace_string "__FINALPATH__" "$final_path" 
+/etc/uwsgi/apps-available/$app.ini
+ln -s /etc/uwsgi/apps-available/$app.ini 
+/etc/uwsgi/apps-enabled/$app.ini
 
 #=================================================
 # ENABLE UWSGI SERVICE IN ADMIN PANEL
